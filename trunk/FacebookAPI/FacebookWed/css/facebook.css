@@ -1,0 +1,77 @@
+﻿@charset "utf-8";
+/* CSS Document */
+
+#header{
+	text-align:center;
+	top:auto;
+	background:#425F9C;
+	height:58px;
+}
+
+#menu{
+	text-align:left;
+	width:25%;
+	float:left;
+	background:#FFFFFF;
+	min-height:530px;	
+}
+
+#content{
+	text-align:left;
+	width:75%;
+	float:right;
+	background:#FFFFFF;
+	min-height:530px;
+	overflow:auto;
+}
+
+#footer{
+	text-align:center;
+	padding-top:10px;
+	bottom:auto;
+	clear:both;
+	background:#99C;
+	height:42px;
+}
+
+#search{
+	float:left;
+	margin-top:5px;
+	margin-left:50px;
+}
+
+#search-box{
+	width:550px;
+	margin-left:5px;
+}
+
+#profile{
+	text-align:center;
+	margin-left:1px;
+	clear:both;
+}
+
+.img{
+    float: left;
+    color: blue;
+    clear: both;
+}
+
+.post{
+    float:left;
+    margin: 2px;    
+}
+
+.comment{    
+    background: #EDEFF4; 
+    margin-top: 1px;   
+}
+
+.name{
+    color: #3B5998;
+}
+
+.like{
+    color: #8393CD;
+    background: #EDEFF4;
+}
