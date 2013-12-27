@@ -7,7 +7,7 @@ window.fbAsyncInit = function () {
         appId: '479529902165723',                        // App ID from the app dashboard
         status: true,                                 // Check Facebook Login status
         xfbml: true,                                  // Look for social plugins on the page
-        async:true
+        async: false
     });
 
     FB.Event.subscribe('auth.authResponseChange', function (response) {
@@ -25,7 +25,7 @@ window.fbAsyncInit = function () {
             //getmember();
             //getfeed();
             //getprofile('1');
-            getfeed(0);
+            getfeed(4);
 
             
             
@@ -99,25 +99,28 @@ function getprofileID(id) {
 }
 
 //Test
-
+var test=0;
 function getfeed(num) {
-	if(num==0)
-	{
-		num=1;
-	}
 	
-	FB.api('/241619362662034?fields=feed.limit(' + num + ')', function (response) {
-	    var length = response.feed.data.length;
-	    //alert('length:' + length);
-	    for (var i = length-1; i < length; i++) {
+    FB.api('/241619362662034?fields=feed.limit(' + num + ')', function (response) {
+        var length = response.feed.data.length;
+        
+	    for (var i = test; i < length; i++) {
+	        test = length;
 	        //alert(i);
             //Ten va ID nguoi dang bai            
             var ID = response.feed.data[i].from.id;            
             var Name = response.feed.data[i].from.name;
             //Noi dung bai dang
             var Message = response.feed.data[i].message;
+            
 			//ID Feed
-			var IDFeed = response.feed.data[i].id;
+            var IDFeed = response.feed.data[i].id;
+	        //Picture va link cua feed
+            
+            //var Picture = response.feed.data[i].picture;
+            //var Link = response.feed.data[i].link;
+
 			//Time to create Feed
 			var TimeFeed = response.feed.data[i].created_time;
 			
@@ -150,8 +153,7 @@ function getfeed(num) {
 			+					'<span class="timeago">'+likecount+' like this</span> </br>'
 			+                   '<a class="linkComment" href="#">Like</a>'
 			+					'<div class="commentSection">'
-			+						'<ul id="'+IDFeed+'">'
-            //+                           '<a onclick="viewmore()">View more comments</a>'
+			+						'<ul id="'+IDFeed+'">'            
 			+							'<font face="Verdana, Geneva, sans-serif"></font>'
 			+						'</ul>'
 			+					'<div style="display: block" class="publishComment">'
@@ -170,7 +172,7 @@ function getfeed(num) {
 			
 			if(lengthComment > 2)
 			{
-			    $('#' + IDFeed).append('<a id="' + IDFeed + '">View more comments</a>');
+			    $('#' + IDFeed).append('<a class="viewmorecomment">View more comments</a>');
 			    lengthComment = 2;
 			}
 			
@@ -200,11 +202,11 @@ function getfeed(num) {
 //get parent ID
 function getparent() {
 
-    $("a").on("click", function () {
+    $("a.viewmorecomment").on("click", function () {
         //var pa = $(this).parent().css({"color":"red","border":"2px solid red"})
         var pa = $(this).parent().attr("id");
-        $('a').attr('style','display: none;');
-        viewmore(pa);
+        $(this).attr('style','display: none;');
+        viewmore(pa);        
         return;
     });
 }
@@ -237,18 +239,19 @@ function viewmore(IDFeed) {
 
 //auto scroll
 function loadMore() {
-	Number = Number + 1;    
+	Number = Number + 4;    
 	//alert('Scroll:' + Number);
-    console.log("More loaded");
+	//$('#content').html("");
     getfeed(Number);
     $(window).bind('scroll', bindScroll);
 }
 
-var Number=1;
+var Number=4;
 function bindScroll() {
     if ($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
         $(window).unbind('scroll');
         loadMore();
+        //$(window).scrollTop(600);
     }
 }
 
