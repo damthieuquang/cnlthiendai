@@ -22,7 +22,7 @@ window.fbAsyncInit = function () {
 
             // TODO: Handle the access token
             getAvatar();
-            //getmember();
+            getmember();
             //getfeed();
             //getprofile('1');
             getfeed(4);
@@ -103,8 +103,7 @@ var test=0;
 function getfeed(num) {
 	
     FB.api('/241619362662034?fields=feed.limit(' + num + ')', function (response) {
-        var length = response.feed.data.length;
-        
+        var length = response.feed.data.length;        
 	    for (var i = test; i < length; i++) {
 	        test = length;
 	        //alert(i);
@@ -116,10 +115,13 @@ function getfeed(num) {
             
 			//ID Feed
             var IDFeed = response.feed.data[i].id;
-	        //Picture va link cua feed
-            
-            //var Picture = response.feed.data[i].picture;
-            //var Link = response.feed.data[i].link;
+	        //Picture va link cua feed    
+            var Picture = "";
+            var Link = "";
+            if (response.feed.data[i].picture != null) {
+                Picture = response.feed.data[i].picture;
+                Link = response.feed.data[i].link;
+            }
 
 			//Time to create Feed
 			var TimeFeed = response.feed.data[i].created_time;
@@ -140,16 +142,18 @@ function getfeed(num) {
             else {
                 lengthComment = response.feed.data[i].comments.data.length;
             }
-			
+
+            var date = new Date(TimeFeed);                        
             
 			var html = 
 			'<div id="body">'
 			+	'<section class="content-wrapper main-content clear-fix">'
 			+		'<ul id="msgHolder">'
 			+			'<li class="postHolder">'
-			+				'<img src="https://graph.facebook.com/' + ID + '/picture?type=square"><p><a href="http://www.facebook.com/'+ID+'" target="_blank">'+Name+'</a>: <span>'+Message+'</span></p>'
+			+               '<img src="https://graph.facebook.com/' + ID + '/picture?type=square"><p><a href="http://www.facebook.com/' + ID + '" target="_blank">' + Name + '</a>: <span>' + Message + '</span></p>'
+            +               '<a href="'+Link+'"><img src="' + Picture + '"></a>'            
 			+				'<div class="postFooter">'
-			+					'<span class="timeago" >'+TimeFeed+'</span>&nbsp;'
+			+					'<span class="timeago" >'+date+'</span>&nbsp;'
 			+					'<span class="timeago">'+likecount+' like this</span> </br>'
 			+                   '<a class="linkComment" href="#">Like</a>'
 			+					'<div class="commentSection">'
@@ -172,7 +176,7 @@ function getfeed(num) {
 			
 			if(lengthComment > 2)
 			{
-			    $('#' + IDFeed).append('<a class="viewmorecomment">View more comments</a>');
+			    $('#' + IDFeed).append('<a >View more comments</a>');
 			    lengthComment = 2;
 			}
 			
@@ -182,19 +186,22 @@ function getfeed(num) {
                 var IDcomment = response.feed.data[i].comments.data[j].from.id;
                 var Namecomment = response.feed.data[i].comments.data[j].from.name;
                 var Likecomment = response.feed.data[i].comments.data[j].like_count;
-                var Messagecomment = response.feed.data[i].comments.data[j].message;											
+                var Messagecomment = response.feed.data[i].comments.data[j].message;
+                var Createtime = response.feed.data[i].comments.data[j].created_time;
+
+                var date = new Date(Createtime);
 				
 				var Com = 
 				'<li class="commentHolder">'
 				+		'<a href="http://www.facebook.com/'+IDcomment+'" target="_blank"><img src="https://graph.facebook.com/' + IDcomment + '/picture?type=square"></a><p><a href="http://www.facebook.com/'+IDcomment+'" target="_blank">'+Namecomment+'</a>: <span>'+Messagecomment+'</span></p>'		
-				+		'<div class="commentFooter"><span class="timeago" >thoi gian</span>&nbsp;&nbsp;<span>so luoc like</span></div>'	
+				+		'<div class="commentFooter"><span class="timeago" >'+date+'</span>&nbsp;&nbsp;<span>'+Likecomment+' likes this</span></div>'	
 				+	'</li>';
 				$('#'+IDFeed).append(Com);
 			}
 			
         }
-        getparent();
-	});
+	    getparent();
+    });    
 	//count = i;
 	//alert(count);
 }
@@ -202,7 +209,7 @@ function getfeed(num) {
 //get parent ID
 function getparent() {
 
-    $("a.viewmorecomment").on("click", function () {
+    $("a").on("click", function () {
         //var pa = $(this).parent().css({"color":"red","border":"2px solid red"})
         var pa = $(this).parent().attr("id");
         $(this).attr('style','display: none;');
@@ -213,7 +220,7 @@ function getparent() {
 
 //view more comments
 function viewmore(IDFeed) {
-    //alert(IDFeed);
+    
     FB.api('/' + IDFeed + '?fields=comments', function (response) {
         var length = response.comments.data.length;
         
@@ -223,16 +230,17 @@ function viewmore(IDFeed) {
             var Namecomment = response.comments.data[g].from.name;
             var Likecomment = response.comments.data[g].like_count;
             var Messagecomment = response.comments.data[g].message;
+            var Createtime = response.comments.data[g].created_time;
+
+            var date = new Date(Createtime);
             
             var Com =
             '<li class="commentHolder">'
             + '<a href="http://www.facebook.com/' + IDcomment + '" target="_blank"><img src="https://graph.facebook.com/' + IDcomment + '/picture?type=square"></a><p><a href="http://www.facebook.com/' + IDcomment + '" target="_blank">' + Namecomment + '</a>: <span>' + Messagecomment + '</span></p>'
-            + '<div class="commentFooter"><span class="timeago" >thoi gian</span>&nbsp;&nbsp;<span>so luoc like</span></div>'
+            + '<div class="commentFooter"><span class="timeago" >'+date+'</span>&nbsp;&nbsp;<span>'+Likecomment+' likes this</span></div>'
             + '</li>';
 
             $('#' + IDFeed).append(Com);
-
-
         }
     });
 }
