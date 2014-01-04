@@ -22,10 +22,10 @@ window.fbAsyncInit = function () {
 
             // TODO: Handle the access token
             getAvatar();
-            //getmember();
+            getmember();
             //getfeed();
             //getprofile('1');
-            //getfeed(4);
+            getfeed(4);
             SortLike();
             
             
@@ -99,22 +99,40 @@ function getprofileID(id) {
 }
 
 //Test
+var hashtag = null;
 var test=0;
 function getfeed(num) {
-	
+    flag = 0;
     FB.api('/241619362662034?fields=feed.limit(' + num + ')', function (response) {
         var length = response.feed.data.length;        
 	    for (var i = test; i < length; i++) {
-	        test = length;
-	        //alert(i);
+	        test = length;	        
             //Ten va ID nguoi dang bai            
             var ID = response.feed.data[i].from.id;            
             var Name = response.feed.data[i].from.name;
             //Noi dung bai dang
             var Message = response.feed.data[i].message;
-            getHashtag(Message);
+            if (hashtag!=null && Message.indexOf(hashtag)==-1)
+            {
+                continue;
+            }
 			//ID Feed
             var IDFeed = response.feed.data[i].id;
+
+	        //tim chuoi hashtag
+            if (Message !=null) {
+                var patt = new RegExp("\\#(.[^\\s]*[^<])", "g");
+                var Hashs = Message.match(patt);
+                if (Hashs != null) {
+                    for (var p = 0; p < Hashs.length ; p++) {
+                        hash = Hashs[p];
+
+                        Message = Message.replace(hash, '<a href="javascript:SortHashTag(\'' + hash + '\')">' + hash + '</a>');
+                    }
+                }
+            }           
+            
+
 	        //Picture va link cua feed    
             var Picture = "";
             var Link = "";
@@ -176,7 +194,8 @@ function getfeed(num) {
 			
 			if(lengthComment > 2)
 			{
-			    $('#' + IDFeed).append('<a >View more comments</a>');
+			    var temp = lengthComment - 2;
+			    $('#' + IDFeed).append('<a class="viewmore">View more comments (' + temp + ' of ' + lengthComment + ')</a>');
 			    lengthComment = 2;
 			}
 			
@@ -201,14 +220,14 @@ function getfeed(num) {
 			
         }
 	    getparent();
-    });    	
+    });    
+	
 }
 
 //get parent ID
-function getparent() 
-{
+function getparent() {
 
-    $("a").on("click", function () {
+    $("a.viewmore").on("click", function () {
         //var pa = $(this).parent().css({"color":"red","border":"2px solid red"})
         var pa = $(this).parent().attr("id");
         $(this).attr('style','display: none;');
@@ -220,8 +239,7 @@ function getparent()
 //view more comments
 function viewmore(IDFeed) {
     
-    FB.api('/' + IDFeed + '?fields=comments', function (response) 
-    {
+    FB.api('/' + IDFeed + '?fields=comments', function (response) {
         var length = response.comments.data.length;
         
         for (var g = 2; g < length; g++) {
@@ -245,40 +263,37 @@ function viewmore(IDFeed) {
     });
 }
 
-function SortLike()
-{   
-    $('a.sortlike').on('click', function()
-    {
-        alert('you click me');
-        FB.api({ method: 'fql.query', query: 'SELECT message, likes,post_id FROM stream WHERE source_id=241619362662034 ORDER BY likes.count desc limit 0,100' }, function (response) {
-            GetPostID(response);
+function SortLike() {
+    //bat su kien click vao sort like
+    $('.sortlike').click(function () {
+        $('#content').html("");//Xoa het noi dung cu
+        //Lay noi dung tren graph
+        FB.api({ method: 'fql.query', query: 'SELECT message, likes,post_id FROM stream WHERE source_id=241619362662034 ORDER BY likes.count desc limit 0,1000' }, function (response) {
+
+            var length = response.length;
+            for (var i = 0; i < 10; i++) {
+                var postID = response[i].post_id;                
+                ShowFeed(postID);
+            }
+            flag = -1;
         });
     });
-      
-}
-
-function GetPostID(resp)
-{
-    var length = resp.length;
-    for (var i = 0; i < 3; i++) {
-        var postID = resp[i].post_id;     
-        ShowFeed(postID);        
-    }
+    
 }
 
 function ShowFeed(postID)
 {
-    FB.api('/' + postID, function (response) {
+    FB.api('/' + postID, { async: false }, function (response) {
         //Ten va ID nguoi dang bai            
         var ID = response.from.id;
         var Name = response.from.name;
-        
+
         //Noi dung bai dang
         var Message = response.message;
-        
+
         //ID Feed
         var IDFeed = response.id;
-        
+
         //Picture va link cua feed    
         var Picture = "";
         var Link = "";
@@ -289,7 +304,7 @@ function ShowFeed(postID)
 
         //Time to create Feed
         var TimeFeed = response.created_time;
-        
+
         //Tong so like
         var likecount = response.likes;
         if (likecount == null) {
@@ -298,7 +313,7 @@ function ShowFeed(postID)
         else {
             likecount = response.likes.data.length;
         }
-        
+
         var lengthComment;
         if (response.comments == null) {
             lengthComment = 0;
@@ -306,88 +321,94 @@ function ShowFeed(postID)
         else {
             lengthComment = response.comments.data.length;
         }
-        
+
         var date = new Date(TimeFeed);
-        
 
-        var html = 
+
+        var html =
 			'<div id="body">'
-			+	'<section class="content-wrapper main-content clear-fix">'
-			+		'<ul id="msgHolder">'
-			+			'<li class="postHolder">'
-			+               '<img src="https://graph.facebook.com/' + ID + '/picture?type=square"><p><a href="http://www.facebook.com/' + ID + '" target="_blank">' + Name + '</a>: <span>' + Message + '</span></p>'
-            +               '<a href="'+Link+'"><img src="' + Picture + '"></a>'            
-			+				'<div class="postFooter">'
-			+					'<span class="timeago" >'+date+'</span>&nbsp;'
-			+					'<span class="timeago">'+likecount+' like this</span> </br>'
-			+                   '<a class="linkComment" href="#">Like</a>'
-			+					'<div class="commentSection">'
-			+						'<ul id="'+IDFeed+'">'            
-			+							'<font face="Verdana, Geneva, sans-serif"></font>'
-			+						'</ul>'
-			+					'<div style="display: block" class="publishComment">'
-			+						'<textarea class="commentTextArea" placeholder="write a comment..." style="height: 19px; overflow: hidden; word-wrap: break-word; resize: none;"></textarea>'
-			+						'<input type="button" value="Comment" class="btnComment">'
-			+					'</div>'
-			+				'</div>'
-			+			'</div>'
-			+		'</li>'
-			+	'</ul>'
-			+	'</section>'
-			+'</div>';
-            $('#content').append(html);
+			+ '<section class="content-wrapper main-content clear-fix">'
+			+ '<ul id="msgHolder">'
+			+ '<li class="postHolder">'
+			+ '<img src="https://graph.facebook.com/' + ID + '/picture?type=square"><p><a href="http://www.facebook.com/' + ID + '" target="_blank">' + Name + '</a>: <span>' + Message + '</span></p>'
+            + '<a href="' + Link + '"><img src="' + Picture + '"></a>'
+			+ '<div class="postFooter">'
+			+ '<span class="timeago" >' + date + '</span>&nbsp;'
+			+ '<span class="timeago">' + likecount + ' like this</span> </br>'
+			+ '<a class="linkComment" href="#">Like</a>'
+			+ '<div class="commentSection">'
+			+ '<ul id="' + IDFeed + '">'
+			+ '<font face="Verdana, Geneva, sans-serif"></font>'
+			+ '</ul>'
+			+ '<div style="display: block" class="publishComment">'
+			+ '<textarea class="commentTextArea" placeholder="write a comment..." style="height: 19px; overflow: hidden; word-wrap: break-word; resize: none;"></textarea>'
+			+ '<input type="button" value="Comment" class="btnComment">'
+			+ '</div>'
+			+ '</div>'
+			+ '</div>'
+			+ '</li>'
+			+ '</ul>'
+			+ '</section>'
+			+ '</div>';
+        $('#content').append(html);
 
-            //add "view more comments"
-            
-            if(lengthComment > 2)
-			{
-			    $('#' + IDFeed).append('<a >View more comments</a>');
-			    lengthComment = 2;
-			}
-			
-            for (var j = 0; j < lengthComment; j++) {
-                //Comment
-                var IDcomment = response.comments.data[j].from.id;
-                var Namecomment = response.comments.data[j].from.name;
-                var Likecomment = response.comments.data[j].like_count;
-                var Messagecomment = response.comments.data[j].message;
-                var Createtime = response.comments.data[j].created_time;
+        //add "view more comments"
 
-                var date = new Date(Createtime);
-				
-				var Com = 
-				'<li class="commentHolder">'
-				+		'<a href="http://www.facebook.com/'+IDcomment+'" target="_blank"><img src="https://graph.facebook.com/' + IDcomment + '/picture?type=square"></a><p><a href="http://www.facebook.com/'+IDcomment+'" target="_blank">'+Namecomment+'</a>: <span>'+Messagecomment+'</span></p>'		
-				+		'<div class="commentFooter"><span class="timeago" >'+date+'</span>&nbsp;&nbsp;<span>'+Likecomment+' likes this</span></div>'	
-				+	'</li>';
-				$('#'+IDFeed).append(Com);
-			}
-		getparent();
+        if (lengthComment > 2) {
+            var temp = lengthComment - 2;
+            $('#' + IDFeed).append('<a >View more comments (' + temp + ' of ' + lengthComment + ')</a>');
+            lengthComment = 2;
+        }
+
+        for (var j = 0; j < lengthComment; j++) {
+            //Comment
+            var IDcomment = response.comments.data[j].from.id;
+            var Namecomment = response.comments.data[j].from.name;
+            var Likecomment = response.comments.data[j].like_count;
+            var Messagecomment = response.comments.data[j].message;
+            var Createtime = response.comments.data[j].created_time;
+
+            var date = new Date(Createtime);
+
+            var Com =
+            '<li class="commentHolder">'
+            + '<a href="http://www.facebook.com/' + IDcomment + '" target="_blank"><img src="https://graph.facebook.com/' + IDcomment + '/picture?type=square"></a><p><a href="http://www.facebook.com/' + IDcomment + '" target="_blank">' + Namecomment + '</a>: <span>' + Messagecomment + '</span></p>'
+            + '<div class="commentFooter"><span class="timeago" >' + date + '</span>&nbsp;&nbsp;<span>' + Likecomment + ' likes this</span></div>'
+            + '</li>';
+            $('#' + IDFeed).append(Com);
+        }
+        getparent();
     });
+    
 }
 
-function getHashtag(str)
+function SortHashTag(p)
 {
-    if (str.indexOf("#") >=0) {
-        //alert(str.indexOf("#"));
+    hashtag = p;
+    $('#content').html("");//Xoa het noi dung cu
+    test = 0;
+    getfeed(4);
+    Number = 4;    
+}
+
+flag = 0;
+//auto scroll
+function loadMore() {
+	Number = Number + 4;    
+	if (flag==0) {
+	    getfeed(Number);	    
+	}
+	
+    $(window).bind('scroll', bindScroll);
+}
+
+var Number=4;
+function bindScroll() {
+    if ($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
+        $(window).unbind('scroll');
+        loadMore();
+        //$(window).scrollTop(600);
     }
 }
 
-//auto scroll
-//function loadMore() {
-//	Number = Number + 4;    
-//	//alert('Scroll:' + Number);
-//	//$('#content').html("");
-//    getfeed(Number);
-//    $(window).bind('scroll', bindScroll);
-//}
-
-//var Number=4;
-//function bindScroll() {
-//    if ($(window).scrollTop() + $(window).height() > $(document).height() - 100) {
-//        $(window).unbind('scroll');
-//        loadMore();        
-//    }
-//}
-
-//$(window).scroll(bindScroll);
+$(window).scroll(bindScroll);
