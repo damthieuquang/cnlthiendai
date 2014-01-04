@@ -12,7 +12,8 @@
 
         <div id="header">
             <div id="search">
-                <img src="image/search-button-without-text-md.png" width="30" height="30"><input type="text" id="search-box" style="padding-bottom: 5px;" />
+                <a onClick="window.location.reload()" style="text-decoration:none; color:white;">Home</a>
+                <input type="text" value="Write something to search" id="search-box" style="padding-bottom: 5px;" />
             </div>
             <div class="fb-login-button" data-width="73" data-height="28" data-max-rows="1" data-show-faces="false" autologoutlink="true"></div>
         </div>
@@ -29,9 +30,9 @@
         <!-- End of #profile -->
         <div id="sort">
             <h2>Sort</h2>
-            
+            <!--<button class="sortlike">Like</button>            -->
             <a href="#" class="sortlike">Like</a>
-            <a href="#">Comment</a>           
+            <a href="#" class="sortcomment">Comment</a>           
         </div>
         <h2>Members</h2>
         <div id="members" style="overflow-y: scroll; height: 400px;">
