@@ -27,6 +27,7 @@ window.fbAsyncInit = function () {
             //getprofile('1');
             getfeed(4);
             SortLike();
+            SortComment();
             
             
 			//$('.fb-login-button').attr('style','display: none;');
@@ -263,22 +264,39 @@ function viewmore(IDFeed) {
     });
 }
 
-function SortLike() {
-    //bat su kien click vao sort like
-    $('.sortlike').click(function () {
+function SortComment()
+{
+    $('.sortcomment').click(function () {
         $('#content').html("");//Xoa het noi dung cu
         //Lay noi dung tren graph
-        FB.api({ method: 'fql.query', query: 'SELECT message, likes,post_id FROM stream WHERE source_id=241619362662034 ORDER BY likes.count desc limit 0,1000' }, function (response) {
+        FB.api({ method: 'fql.query', query: 'SELECT post_id,comment_info FROM stream WHERE source_id=241619362662034 ORDER BY comment_info.comment_count desc limit 0,1000' }, function (response) {
 
             var length = response.length;
-            for (var i = 0; i < 10; i++) {
-                var postID = response[i].post_id;                
+            for (var i = 0; i < 20; i++) {
+                var postID = response[i].post_id;
                 ShowFeed(postID);
             }
             flag = -1;
         });
     });
-    
+}
+
+function SortLike() {
+    //bat su kien click vao sort like
+    $('.sortlike').click(function () {
+        $('#content').html("");//Xoa het noi dung cu
+        //Lay noi dung tren graph
+        FB.api({ method: 'fql.query', query: 'SELECT likes,post_id FROM stream WHERE source_id=241619362662034 ORDER BY likes.count desc limit 0,1000' }, function (response) {
+
+            var length = response.length;
+            for (var i = 0; i < 20; i++) {
+                var postID = response[i].post_id;
+                ShowFeed(postID);
+            }
+            flag = -1;
+        });
+    });
+
 }
 
 function ShowFeed(postID)
